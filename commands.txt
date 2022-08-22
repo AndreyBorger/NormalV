@@ -1,0 +1,103 @@
+Запуск Django shell:
+python manage.py shell
+
+1) Создать двух пользователей с помощью метода User.objects.create_user:
+from news.models import User
+u1 = User.objects.create_user('Иван')
+u2 = User.objects.create_user('Андрей')
+u3 = User.objects.create_user('Мария')
+
+2) Создать два объекта модели Author, связанные с пользователями:
+from news.models import Author
+Author.objects.create(user=u1)
+Author.objects.create(user=u2)
+
+3) Добавить 4 категории в модель Category:
+from news.models import Category
+Category.objects.create(category_name = 'Музыка')
+Category.objects.create(category_name = 'Питомцы')
+Category.objects.create(category_name = 'Образование')
+Category.objects.create(category_name = 'Программирование')
+
+4) Добавить 2 статьи и 1 новость:
+author = Author.objects.get(id=1)
+// Буквы 'Н' и 'С' русские
+Post.objects.create(author=author, post_type='Н', post_title='Кошачья жизнь', post_text='Наша кошка любит музыку!')
+Post.objects.create(author=author, post_type='С', post_title='Что такое Django?', post_text='Django — это высокоуровневый Python веб-фреймворк, который позволяет быстро создавать безопасные и поддерживаемые веб-сайты. Созданный опытными разработчиками, Django берёт на себя большую часть хлопот веб-разработки, поэтому вы можете сосредоточиться на написании своего веб-приложения без необходимости изобретать велосипед. Он бесплатный и с открытым исходным кодом, имеет растущее и активное сообщество, отличную документацию и множество вариантов как бесплатной, так и платной поддержки.')
+author2 = Author.objects.get(id=2)
+Post.objects.create(author=author2, post_type='С', post_title='Бинауральная музыка', post_text='Бинауральная музыка (от лат. bini – пара, два и auris – ухо) – это воспроизведение двух разных частот и их подача в два разных наушника. Чаще всего такая музыка упоминается в двух аспектах: польза для человеческого здоровья и уникальность звучания. Есть мнение, что бинауральная музыка помогает в процессе обучения.')
+
+5) Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий):
+// Присваиваем одному посту две категории
+p1 = Post.objects.get(id=2)
+p1.post_category.add(Category.objects.get(id=3))
+p1.post_category.add(Category.objects.get(id=4))
+
+p2 = Post.objects.get(id=4)
+p2.post_category.add(Category.objects.get(id=1))
+p2.post_category.add(Category.objects.get(id=3))
+
+p3 = Post.objects.get(id=3)
+p3.post_category.add(Category.objects.get(id=2))
+
+6) Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий):
+from news.models import Comment
+Comment.objects.create(post=Post.objects.get(id=3), user=User.objects.get(id=6), comment_text='Круто! Люблю кошек!')
+Comment.objects.create(post=Post.objects.get(id=2), user=User.objects.get(id=5), comment_text='Согласен! Очень полезная вещь!')
+Comment.objects.create(post=Post.objects.get(id=4), user=User.objects.get(id=4), comment_text='Послушал. Действительно, помогает сосредоточиться!')
+Comment.objects.create(post=Post.objects.get(id=3), user=User.objects.get(id=6), comment_text='У меня тоже есть кошка :) Пишите еще новости про Вашу кошку!')
+
+7) Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов.
+
+// Комментарии
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).dislike()
+Comment.objects.get(id=4).like()
+Comment.objects.get(id=4).like()
+
+Comment.objects.get(id=3).like()
+Comment.objects.get(id=3).like()
+
+Comment.objects.get(id=1).dislike()
+
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+Comment.objects.get(id=2).like()
+
+// Посты
+Post.objects.get(id=2).dislike()
+Post.objects.get(id=3).like()
+Post.objects.get(id=4).like()
+Post.objects.get(id=4).like()
+
+8) Обновить рейтинги пользователей:
+
+Author.update_rating()
+
+9) Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта):
+
+Author.objects.order_by('author_rating').last().user.username
+Author.objects.order_by('author_rating').last().author_rating
+
+10) Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи,
+основываясь на лайках/дислайках к этой статье:
+
+a = Post.objects.order_by('-post_rating').first():
+a.created_at
+a.author_id.user_id.username
+a.post_rating
+a.post_title
+a.preview()
+
+11) Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье:
+
+comments = Comment.objects.all().filter(post_id=a.id)
+for comment in comments:
+    print(comment.created_at)
+    print(User.objects.get(id=comment.user_id))
+    print(comment.comment_rating)
+    print(comment.comment_text)
